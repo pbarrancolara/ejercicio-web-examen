@@ -1,1 +1,25 @@
+name: Pipeline CI/CD Completo (Test -> Doc y Deploy)
 
+# 1. DISPARADORES (Events)
+on:
+  workflow_dispatch:
+  #push:
+    #branches:
+      # deploy
+  #pull_request:
+    #branches:
+      # deploy
+jobs:
+  comprobar_pruebas_unitarias:
+    name: 1. Ejecutar Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1.1 Checkout del código
+        uses: actions/checkout@v6.0.0
+      
+      - name: 1.2 Instalar dependencias
+        run: npm install
+      
+      - name: 1.3 Ejecutar pruebas unitarias
+        run: npx test
