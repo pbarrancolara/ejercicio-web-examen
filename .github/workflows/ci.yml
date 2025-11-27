@@ -1,1 +1,57 @@
+name: Pipeline CI/CD Completo (Test -> Doc y Deploy)
 
+# 1. DISPARADORES (Events)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+       deploy
+  #pull_request:
+    #branches:
+      # deploy
+jobs:
+  comprobar_pruebas_unitarias:
+    name: 1. Ejecutar Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1.1 Checkout del código
+        uses: actions/checkout@v6.0.0
+      
+      - name: 1.2 Instalar dependencias
+        run: npm install
+
+      - name: 1.3 Arreglar permisos del binario Jest
+        run: chmod +x ./node_modules/.bin/jest
+      
+      - name: 1.4 Ejecutar pruebas unitarias
+        run: npm test
+
+  desplegar_bucket:
+    name: 2. Despliegue Bucket S3
+    runs-on: ubuntu-latest
+    needs: comprobar_pruebas_unitarias
+
+    steps:
+      - name: 2.1 Checkout del código
+        uses: actions/checkout@v6.0.0
+
+      - name: 2.2 Configurar Node
+        uses: actions/setup-node@v6.0.0
+        with:
+          node-version: '20'
+
+      - name: 2.3 Instalar dependencias (Limpio)
+        run: npm ci
+
+      - name: 2.4 Configurar credenciales de AWS
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: 2.5 Subir al bucket
+        run: |
+          aws s3 sync ./src s3://${{ secrets.S3_BUCKET }}/ --delete
