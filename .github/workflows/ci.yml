@@ -3,9 +3,9 @@ name: Pipeline CI/CD Completo (Test -> Doc y Deploy)
 # 1. DISPARADORES (Events)
 on:
   workflow_dispatch:
-  #push:
-    #branches:
-      # deploy
+  push:
+    branches:
+       deploy
   #pull_request:
     #branches:
       # deploy
